@@ -2,12 +2,30 @@
 
 class SdashboardModule extends CWebModule
 {
-	public $defaultController = 'dashboard';
-	public $allowAjax = true;
-	public function init()
-	{
-		$this->registerAssets();
+    /**
+     * @var string
+     */
+    public $defaultController = 'dashboard';
+    /**
+     * @var bool
+     */
+    public $allowAjax = true;
 
+    /**
+     * @var bool
+     */
+    public $debug = YII_DEBUG;
+
+    /**
+     * @var string
+     */
+    protected $_assetsUrl = '';
+    /**
+     *
+     */
+    public function init()
+	{
+		$this->registerScripts();
 
 		$this->setImport(array(
 			'sdashboard.models.*',
@@ -28,23 +46,51 @@ class SdashboardModule extends CWebModule
 		else
 			return false;
 	}
-	public function registerAssets()
-	{	
-		$assets =Yii::app()->basePath.'/modules/sdashboard/assets';
-		$baseUrl = Yii::app() -> assetManager -> publish($assets);
-		//the css to use
-		Yii::app() -> clientScript -> registerCssFile($baseUrl . '/css/sdashboard.css');
-		Yii::app() -> clientScript -> registerCssFile('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/start/jquery-ui.css');
-		Yii::app() -> clientScript -> registerCssFile($baseUrl . '/css/jquery.toastmessage.css');
-		Yii::app() -> clientScript -> registerCssFile($baseUrl . '/markitup/skins/markitup/style.css');
-		Yii::app() -> clientScript -> registerCssFile($baseUrl . '/markitup/sets/bbcode/style.css');
+    /**
+     * Registers the necessary scripts.
+     */
+    public function registerScripts()
+    {
+        // Get the url to the module assets
+        $assetsUrl = $this->getAssetsUrl();
 
-		// the js to use
-		Yii::app()->getClientScript()->registerCoreScript( 'jquery.ui' );
-		Yii::app() -> clientScript -> registerScriptFile($baseUrl . "/js/jquery.toastmessage.js", CClientScript::POS_END);
-		Yii::app() -> clientScript -> registerScriptFile($baseUrl . "/js/bootbox.min.js", CClientScript::POS_END);
-		Yii::app() -> clientScript -> registerScriptFile($baseUrl . "/markitup/sets/bbcode/set.js", CClientScript::POS_BEGIN);
-		Yii::app() -> clientScript -> registerScriptFile($baseUrl . "/markitup/jquery.markitup.js", CClientScript::POS_BEGIN);
-	    Yii::app() -> clientScript -> registerScriptFile($baseUrl . "/js/sdashboard.js", CClientScript::POS_END);
-	}
+        // Register the necessary scripts
+        $cs = Yii::app()->getClientScript();
+
+        //the css to use
+      $cs -> registerCssFile($assetsUrl . '/css/sdashboard.css')
+        -> registerCssFile('http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.1/themes/start/jquery-ui.css')
+         -> registerCssFile($assetsUrl . '/css/jquery.toastmessage.css')
+         ->registerCssFile($assetsUrl . '/markitup/skins/markitup/style.css')
+        -> registerCssFile($assetsUrl . '/markitup/sets/bbcode/style.css');
+
+        // the js to use
+       $cs->registerCoreScript( 'jquery.ui' )
+         -> registerScriptFile($assetsUrl . "/js/jquery.toastmessage.js", CClientScript::POS_END)
+        -> registerScriptFile($assetsUrl . "/js/bootbox.min.js", CClientScript::POS_END)
+         -> registerScriptFile($assetsUrl . "/markitup/sets/bbcode/set.js", CClientScript::POS_BEGIN)
+        -> registerScriptFile($assetsUrl . "/markitup/jquery.markitup.js", CClientScript::POS_BEGIN)
+        -> registerScriptFile($assetsUrl . "/js/sdashboard.js", CClientScript::POS_END);
+
+    }
+
+    /**
+     * @return string
+     */
+    public function getAssetsUrl()
+    {
+        if( $this->_assetsUrl===null )
+        {
+            $assetsPath = dirname(__FILE__) . DIRECTORY_SEPARATOR . 'assets';
+
+            // We need to republish the assets if debug mode is enabled.
+            if( $this->debug===true )
+                $this->_assetsUrl = Yii::app()->getAssetManager()->publish($assetsPath, false, -1, true);
+            else
+                $this->_assetsUrl = Yii::app()->getAssetManager()->publish($assetsPath);
+        }
+
+        return $this->_assetsUrl;
+    }
+
 }
